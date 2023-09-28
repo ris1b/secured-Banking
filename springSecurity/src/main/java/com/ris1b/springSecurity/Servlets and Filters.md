@@ -15,7 +15,25 @@ Http Servlet Response and again converts back it to the HTTP Servlet message.
 Similarly, we have Filters inside the Web Application. Filters are special kind of servlets which 
 we can use to intercept each and every request that is coming to our web application. 
 
-## Spring Security Internal Flow
-``Give link to internal flow
-``
+### Spring Security Internal Flow
+[Internal flow](https://github.com/ris1b/SpringSecurity/blob/main/SpringSecurityNotes.md)
+
+### What logic is required to protect all the URL's by default ?
+- By default, Spring Security Framework protects all the paths present inside the web application.
+    This reason is due to the defaultSecurityFilterChain() implementation of SpringBootWebSecurityConfiguration class: 
+``` java
+// This method returns SecurityFilterChain Bean.
+@Bean
+@Order(SecurityProperties.BASIC_AUTH_ORDER)
+SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+            // any incoming request should be authenticated 
+            http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
+			http.formLogin(withDefaults());
+			http.httpBasic(withDefaults());
+			return http.build();
+		}
+```
+### [How to define our own custom Security requirements?](Implementing-Custom-Security.md)
+
+[//]: # ([How to define our own custom Security requirements?]&#40;url&#41;)
 

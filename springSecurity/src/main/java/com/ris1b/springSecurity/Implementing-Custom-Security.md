@@ -27,7 +27,7 @@ SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Excepti
 ### Now we can define the bean of SecurityFilterChain inside the configuration class.
 
 [//]: # (try giving the url of the configuration Class)
-[Custom Configuration link](url of the package)
+[Custom Configuration Class implementation](https://github.com/ris1b/secured-Banking/blob/main/springSecurity/src/main/java/com/ris1b/springSecurity/config/ProjectSecurityConfig.java)
 
 When we want to define our own custom requirements we would invoke ``requestmatchers() method`` where we would define our API Paths.
 

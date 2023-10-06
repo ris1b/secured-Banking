@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.configurers.HttpBasicC
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
@@ -19,7 +20,7 @@ import javax.sql.DataSource;
 @Configuration
 public class ProjectSecurityConfig {
 
-    /** Created custom SecurityFilterChain Bean.*/
+    /* Created custom SecurityFilterChain Bean*/
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -33,6 +34,12 @@ public class ProjectSecurityConfig {
         return http.build();
     }
 
+    /*Here, we are communicating to Spring Security that how Passwords are stored*/
+    @Bean
+    public PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder();
+    }
+
     /** Created new Bean of JdbcUserDetailsManager, replacing InMemoryUserDetailsManager
         - userDetailsService() method takes in DataSource object
         When we add mysql dependency in the classpath and define it in application.properties
@@ -43,7 +50,6 @@ public class ProjectSecurityConfig {
         present inside the DataSource
         so, while creating the object of JdbcUserDetailsManager, we need to make sure
     */
-
     /** Commenting this implementation of UserDetailsService in order to use
      * custom implementation of UserDetailsService by EazyBankUserDetails.
      * */
@@ -52,57 +58,4 @@ public class ProjectSecurityConfig {
 //        return new JdbcUserDetailsManager(dataSource);
 //    }
 
-
-    /*Here, we are communicating to Spring Security that how Passwords are stored*/
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return NoOpPasswordEncoder.getInstance();
-    }
 }
-
-
-        /** Basic Syntax
-         http.authorizeHttpRequests((requests) -> requests.anyRequest().authenticated());
-         http.formLogin(withDefaults());
-         http.httpBasic(withDefaults());
-         return http.build();
-         */
-
-        /* Code1
-            Authorizing requests using Lambda (used in updated Udemy Course)
-            Here, authenticating few API's and permitting other API's
-        http
-                .authorizeHttpRequests((requests)->requests
-                        .requestMatchers("/myAccount", "myBalance", "/myCards", "/myLoans").authenticated()
-                        .requestMatchers("/contact", "/notices").permitAll())
-                .formLogin(Customizer.withDefaults())
-                .httpBasic(Customizer.withDefaults());
-         */
-
-
-        /* Code2
-            The below code works fine. Using this code currently.
-            This code is inspired from Spring Docs
-            When both form login and HTTP Basic authentication are configured,
-            users can choose which authentication method they want to use.
-            For example, users could use form login to authenticate from a web browser
-            and HTTP Basic authentication to authenticate from a mobile app.
-         */
-
-        /* Code3
-            This below code works fine. Added defaultSuccessUrl("/login")
-        http
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/myAccount", "myBalance", "/myCards", "/myLoans").authenticated()
-                        .requestMatchers("/contact", "/notices").permitAll()
-                )
-                .formLogin(formLogin -> formLogin
-                        .defaultSuccessUrl("/login")        // Added
-                        // .loginPage("/login")             // Commented
-                        // .permitAll()                     // Commented
-                )
-                .httpBasic(httpBasicConfigurer -> httpBasicConfigurer
-                        .realmName("My Realm")
-                );
-                // .rememberMe(Customizer.withDefaults());  // Commented
-         */

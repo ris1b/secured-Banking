@@ -20,4 +20,3 @@ i.e. In-Memory here.
   - Based on the Beans defined in the project configurations, so the same managers would be 
     used by the spring framework (by invoking them via one of the authentication providers).
   - By default, DaoAuthenticationProvider is used.
-- 

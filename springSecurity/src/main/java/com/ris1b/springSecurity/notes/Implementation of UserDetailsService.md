@@ -26,4 +26,3 @@ public class EazyBankUserDetails implements UserDetailsService {
 - Now, Spring Framework will forward this incoming request to DaoAuthenticationProvider
 
   - DaoAuthenticationProvider will look for the implementation classes for UserDetailsService
-  - 

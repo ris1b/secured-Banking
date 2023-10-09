@@ -1,21 +1,18 @@
 package com.ris1b.springSecurity.config;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.HttpBasicConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.provisioning.JdbcUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 
-import javax.sql.DataSource;
+import java.util.Collections;
+
 
 @Configuration
 public class ProjectSecurityConfig {
@@ -25,9 +22,21 @@ public class ProjectSecurityConfig {
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf((csrf) -> csrf.disable())
-                .cors((cors) -> cors.disable())
+                .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration corsConfig = new CorsConfiguration();
+                        corsConfig.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+                        corsConfig.setAllowedMethods(Collections.singletonList("*"));
+                        corsConfig.setAllowCredentials(true);
+                        corsConfig.setAllowedHeaders(Collections.singletonList("*"));
+                        corsConfig.setMaxAge(3600L);
+
+                        return corsConfig;
+                    }
+                }))
                 .authorizeHttpRequests((requests)->requests
-                        .requestMatchers("/myAccount", "myBalance", "/myCards", "/myLoans").authenticated()
+                        .requestMatchers("/myAccount", "myBalance", "/myCards", "/myLoans", "/user").authenticated()
                         .requestMatchers("/contact", "/notices", "/register").permitAll())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
@@ -40,7 +49,7 @@ public class ProjectSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /** Created new Bean of JdbcUserDetailsManager, replacing InMemoryUserDetailsManager
+    /* Created new Bean of JdbcUserDetailsManager, replacing InMemoryUserDetailsManager
         - userDetailsService() method takes in DataSource object
         When we add mysql dependency in the classpath and define it in application.properties
         Spring Boot will automatically create an object of DataSource inside the WebApplication
@@ -50,11 +59,11 @@ public class ProjectSecurityConfig {
         present inside the DataSource
         so, while creating the object of JdbcUserDetailsManager, we need to make sure
     */
-    /** Commenting this implementation of UserDetailsService in order to use
+    /* Commenting this implementation of UserDetailsService in order to use
      * custom implementation of UserDetailsService by EazyBankUserDetails.
      * */
 //    @Bean
-//    public UserDetailsService userDetailsService(DataSource dataSource) {
+//    public UserDetailsService(DataSource dataSource) {
 //        return new JdbcUserDetailsManager(dataSource);
 //    }
 

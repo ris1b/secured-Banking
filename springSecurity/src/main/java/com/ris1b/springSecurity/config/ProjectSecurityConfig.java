@@ -1,13 +1,18 @@
 package com.ris1b.springSecurity.config;
 
+import com.ris1b.springSecurity.filter.CsrfCookieFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
@@ -20,8 +25,30 @@ public class ProjectSecurityConfig {
     /* Created custom SecurityFilterChain Bean*/
     @Bean
     SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+        // creating object of csrf token request attribute
+        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+        requestHandler.setCsrfRequestAttributeName("_csrf");
+
         http
-                .csrf((csrf) -> csrf.disable())
+                .securityContext((context) -> context
+                        /* made explicitSave false, to give the responsibility of generating JSESSIONID and storing Authentication details into securityContext to Spring Framework */
+                        .requireExplicitSave(false))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)) // always create JSESSIONID after initial login
+
+                .csrf((csrf) -> csrf
+                        .csrfTokenRequestHandler(requestHandler)
+                        .ignoringRequestMatchers("/contact", "/register")
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        /* backend app has to send cookie and header value after the initial login,
+                         so send token value as part of response to the UI app
+                         We need a Filter class, CsrfCookieFilter */
+                )
+                /* Execute CsrfCookieFilter after BasicAuthenticationFilter.
+                    After the BasicAuthenticationFilter, login will be completed
+                    and then CsrfToken will be generated. The CsrfToke value will
+                    be persisted in the response via CsrfCookieFilter
+                 */
+                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
@@ -40,8 +67,11 @@ public class ProjectSecurityConfig {
                         .requestMatchers("/contact", "/notices", "/register").permitAll())
                 .formLogin(Customizer.withDefaults())
                 .httpBasic(Customizer.withDefaults());
+
+
         return http.build();
     }
+
 
     /*Here, we are communicating to Spring Security that how Passwords are stored*/
     @Bean
